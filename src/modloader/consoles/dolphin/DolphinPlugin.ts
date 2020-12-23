@@ -1,6 +1,6 @@
-import { IModLoaderAPI, IPlugin } from "API/build/IModLoaderAPI";
+import { IModLoaderAPI, IPlugin } from "modloader64_api/IModLoaderAPI";
 
-class DolphinPlugin implements IPlugin{
+class DolphinPlugin implements IPlugin {
 
     ModLoader!: IModLoaderAPI;
     pluginName?: string | undefined;
@@ -14,7 +14,6 @@ class DolphinPlugin implements IPlugin{
     }
     onTick(frame?: number): void {
     }
-
 }
 
 module.exports = DolphinPlugin;

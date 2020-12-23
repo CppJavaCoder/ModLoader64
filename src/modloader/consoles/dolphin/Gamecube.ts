@@ -1,21 +1,22 @@
-import IConsole from "API/build/IConsole";
-import IMemory from "API/build/IMemory";
-import { ILogger } from "API/build/IModLoaderAPI";
-import { IRomHeader } from "API/build/IRomHeader";
-import ISaveState from "API/build/ISaveState";
-import IUtils from "API/build/IUtils";
-import { Debugger } from "API/build/Sylvain/Debugger";
-import { Gfx } from "API/build/Sylvain/Gfx";
-import { Emulator_Callbacks, IImGui } from "API/build/Sylvain/ImGui";
-import { Input } from "API/build/Sylvain/Input";
-import { SDL } from "API/build/Sylvain/SDL";
-import { IYaz0 } from "API/build/Sylvain/Yaz0";
+import IConsole from "modloader64_api/IConsole";
+import IMemory from "modloader64_api/IMemory";
+import { ILogger } from "modloader64_api/IModLoaderAPI";
+import { IRomHeader } from "modloader64_api/IRomHeader";
+import ISaveState from "modloader64_api/ISaveState";
+import IUtils from "modloader64_api/IUtils";
+import { Debugger } from "modloader64_api/Sylvain/Debugger";
+import { Gfx } from "modloader64_api/Sylvain/Gfx";
+import { Emulator_Callbacks, IImGui } from "modloader64_api/Sylvain/ImGui";
+import { Input } from "modloader64_api/Sylvain/Input";
+import { SDL } from "modloader64_api/Sylvain/SDL";
+import { IYaz0 } from "modloader64_api/Sylvain/Yaz0";
 import path from 'path';
 import { GCRomHeader } from "./GCRomHeader";
 import { DolphinMemoryWrapper } from "./MemoryWrapper";
 import fs from 'fs';
 import { CoreState, Dolphin } from '@dolphin/binding/Dolphin';
 import { internal_event_bus } from "../../modloader64";
+import { bus } from "modloader64_api/EventHandler";
 
 export class Gamecube implements IConsole {
 
@@ -44,6 +45,7 @@ export class Gamecube implements IConsole {
         };
         this.mod.onStateChanged = (newState: CoreState) => {
             logger.debug('New state: ' + CoreState[newState]);
+            bus.emit("DolphinStateChanged", newState);
             if (newState === CoreState.Running) {
                 this.isRunning = true;
             } else {
