@@ -140,16 +140,16 @@ export class DolphinMemoryWrapper implements IMemory, IRomMemory {
         return this.dolphin.Memmap.writePtrBitU8(addr, offset, bitoffset, bit);
     }
     rdramReadF32(addr: number): number {
-        return this.dolphin.Memmap.readF32BE(addr);
+        return this.dolphin.Memmap.readF32LE(addr);
     }
     rdramReadPtrF32(addr: number, offset: number): number {
-        return this.dolphin.Memmap.readPtrF32BE(addr, offset);
+        return this.dolphin.Memmap.readPtrF32LE(addr, offset);
     }
     rdramWriteF32(addr: number, value: number): void {
-        return this.dolphin.Memmap.writeF32BE(addr, value);
+        return this.dolphin.Memmap.writeF32LE(addr, value);
     }
     rdramWritePtrF32(addr: number, offset: number, value: number): void {
-        return this.dolphin.Memmap.writePtrF32BE(addr, offset, value);
+        return this.dolphin.Memmap.writePtrF32LE(addr, offset, value);
     }
     bitCount8(value: number): number {
         return 0;
