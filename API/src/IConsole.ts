@@ -8,6 +8,7 @@ import { Gfx } from './Sylvain/Gfx';
 import { Input } from './Sylvain/Input';
 import { IYaz0 } from './Sylvain/Yaz0';
 import { Debugger } from './Sylvain/Debugger';
+import { Memmap } from './Sylvain/dolphin/Dolphin';
 
 interface IConsole {
   startEmulator(preStartCallback: Function): IMemory;
@@ -61,6 +62,8 @@ interface IConsole {
   getYaz0Encoder(): IYaz0;
 
   getDebuggerAccess(): Debugger;
+
+  getInternalPluginPath(): string;
 
 }
 

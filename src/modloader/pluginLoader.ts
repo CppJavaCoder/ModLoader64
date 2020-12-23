@@ -426,7 +426,7 @@ class pluginLoader {
         internal_event_bus.emit("CORE_LOADED", { name: this.selected_core, obj: this.loaded_core });
 
         // Start internal plugins.
-        this.processInternalPlugin('./consoles/mupen/MenubarPlugin.js', console);
+        this.processInternalPlugin(console.getInternalPluginPath(), console);
 
         // Start external plugins.
         if (fs.existsSync("./load_order.json")) {
@@ -538,7 +538,6 @@ class pluginLoader {
             }
             return iconsole.getMemoryAccess().bitCountBuffer(buf, offset, length);
         };
-
         let fn = (modid: string): boolean => {
             for (let i = 0; i < this.plugins.length; i++) {
                 if (this.plugins[i].pluginName === modid) {
@@ -698,7 +697,6 @@ class pluginLoader {
         };
         Object.freeze(this.onTickHandle);
         Object.freeze(this.onViHandle);
-        let emu: IMemory = iconsole.getMemoryAccess();
         iconsole.on(Emulator_Callbacks.core_started, () => {
             this.loaded_core.ModLoader.utils.setTimeoutFrames(() => {
                 this.injector();

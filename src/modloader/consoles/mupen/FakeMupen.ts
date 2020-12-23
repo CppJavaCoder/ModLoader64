@@ -15,6 +15,7 @@ import { Gfx, Texture, FlipFlags, Font } from 'modloader64_api/Sylvain/Gfx';
 import { Input, Axis, Button, FilterFlags } from 'modloader64_api/Sylvain/Input';
 import { IYaz0 } from 'modloader64_api/Sylvain/Yaz0';
 import { BpFlags, BpStruct, BpTriggerInfo, Debugger, MemFlags, MemType, Register, RunState } from 'modloader64_api/Sylvain/Debugger';
+import path from 'path';
 
 export class FakeMupen implements IConsole {
     rom: string;
@@ -25,6 +26,10 @@ export class FakeMupen implements IConsole {
         this.rom = rom;
         this.rom_data = Buffer.alloc(1);
         this.ram = new FakeN64Memory();
+    }
+
+    getInternalPluginPath(): string {
+        return path.resolve(__dirname, "MenubarPlugin.js");
     }
 
     getDebuggerAccess(): Debugger {

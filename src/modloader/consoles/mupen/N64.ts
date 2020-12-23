@@ -178,6 +178,10 @@ class N64 implements IConsole {
         });
     }
 
+    getInternalPluginPath(): string {
+        return path.resolve(__dirname, "MenubarPlugin.js");
+    }
+
     private registerCallback(type: string, callback: Function) {
         if (!this.callbacks.has(type)) {
             this.callbacks.set(type, []);

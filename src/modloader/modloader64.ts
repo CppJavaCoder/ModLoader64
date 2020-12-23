@@ -35,7 +35,7 @@ import { getAllFiles } from './getAllFiles';
 import { PakPatch } from './PakPatch';
 import { IClientConfig } from './IClientConfig';
 
-const SUPPORTED_CONSOLES: string[] = ['N64'];
+const SUPPORTED_CONSOLES: string[] = ['N64', 'Gamecube', 'Wii'];
 export const internal_event_bus = new EventBus();
 
 class ModLoader64 {
@@ -62,7 +62,6 @@ class ModLoader64 {
     done = false;
 
     constructor(logger: any, discord: string) {
-        moduleAlias.addAlias("@emulator", path.join(process.cwd(), "/emulator"));
         moduleAlias.addAlias("@sound", path.join(process.cwd(), "/emulator"));
         global.ModLoader["logger"] = logger;
         if (global.ModLoader.hasOwnProperty("OVERRIDE_MODS_FOLDER")) {
@@ -235,14 +234,34 @@ class ModLoader64 {
                 }
             }
         });
+        let gc = () => {
+            moduleAlias.addAlias("@dolphin", path.join(process.cwd(), "/dolphin"));
+            if (this.data.isServer) {
+                // No fake server stuff yet.
+            }
+            if (this.data.isClient) {
+                // This is dumb but import statements and dynamic aliases don't get along.
+                let gc = require('./consoles/dolphin/Gamecube');
+                this.emulator = new gc.Gamecube(this.rom_path, this.logger, this.clientConfig.lobby);
+            }
+        };
         switch (this.data.selectedConsole) {
             case 'N64': {
+                moduleAlias.addAlias("@emulator", path.join(process.cwd(), "/emulator"));
                 if (this.data.isServer) {
                     this.emulator = new FakeMupen(this.rom_path);
                 }
                 if (this.data.isClient) {
                     this.emulator = new N64(this.rom_path, this.logger, this.clientConfig.lobby);
                 }
+                break;
+            }
+            case 'Gamecube': {
+                gc();
+                break;
+            }
+            case 'Wii': {
+                gc();
                 break;
             }
         }
@@ -317,7 +336,7 @@ class ModLoader64 {
         }
         if (fs.existsSync(this.rom_path) || this.data.isServer) {
             this.plugins.loadPluginsInit(result[0].me, this.emulator, this.Client);
-            this.logger.info('Setting up Mupen...');
+            this.logger.info('Setting up emulator...');
             let instance = this;
             let mupen: IMemory;
             let load_mupen = new Promise(function (resolve, reject) {

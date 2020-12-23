@@ -90,14 +90,20 @@ function getEmulator() {
     if (!fs.existsSync("./Mupen64Plus")) {
         fs.mkdirSync("./Mupen64Plus");
     }
+    if (!fs.existsSync("./Dolphin")){
+        fs.mkdirSync("./Dolphin");
+    }
     console.log(platformkey);
     if (platformkey.indexOf("win32") > -1) {
         if (platformkey.indexOf("64") > -1){
             console.log("./node_modules/modloader64-platform-deps/Windows64/emulator.pak");
             fs.copyFileSync("./node_modules/modloader64-platform-deps/Windows64/emulator.pak", "./Mupen64Plus/emulator.pak");
+            console.log("./node_modules/modloader64-platform-deps/Windows64/dolphin.pak");
+            fs.copyFileSync("./node_modules/modloader64-platform-deps/Windows64/dolphin.pak", "./Dolphin/dolphin.pak");
         }else{
             console.log("./node_modules/modloader64-platform-deps/Windows/emulator.pak");
             fs.copyFileSync("./node_modules/modloader64-platform-deps/Windows/emulator.pak", "./Mupen64Plus/emulator.pak");
+            console.log("WARN: Win32 does not support Gamecube or Wii mode!");
         }
     } else if (platformkey.indexOf("linux") > -1) {
         fs.copyFileSync("./node_modules/modloader64-platform-deps/Linux/emulator.pak", "./Mupen64Plus/emulator.pak");
@@ -302,10 +308,10 @@ function prebuild() {
     }
 
     if (!fs.existsSync("./build/emulator")) {
-        if (fs.existsSync("./Mupen64Plus/emulator.tar.gz")) {
-            fs.unlink("./Mupen64Plus/emulator.tar.gz");
-        }
         fs.copySync("./Mupen64Plus", "./build");
+    }
+    if (!fs.existsSync("./build/dolphin")){
+        fs.copySync("./Dolphin", "./build/dolphin");
     }
     (async () => {
         const fetch = require('node-fetch');
