@@ -18,7 +18,7 @@ PayloadConverter/ootcore/
 PayloadConverter/ooto/
 Scripts/Windows/.wget-hsts
 dist/
-dolphin/
+/Dolphin/
 Mupen64Plus/
 SDK-config.json
 CustomActorToolkit/
