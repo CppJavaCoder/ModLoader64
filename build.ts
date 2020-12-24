@@ -107,6 +107,7 @@ function getEmulator() {
         }
     } else if (platformkey.indexOf("linux") > -1) {
         fs.copyFileSync("./node_modules/modloader64-platform-deps/Linux/emulator.pak", "./Mupen64Plus/emulator.pak");
+        fs.copyFileSync("./node_modules/modloader64-platform-deps/Linux/dolphin.pak", "./Dolphin/dolphin.pak");
     }
 }
 
