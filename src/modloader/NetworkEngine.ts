@@ -431,7 +431,7 @@ namespace NetworkEngine {
                                 socket.to(data.lobby).emit('msg', data);
                             }
                         } catch (err) {
-                            inst.logger.error(err);
+                            inst.logger.error(err.stack);
                         }
                     });
                     socket.on('toSpecificPlayer', function (data: any) {
@@ -490,7 +490,7 @@ namespace NetworkEngine {
                             });
                         }
                     } catch (err) {
-                        inst.logger.error(err);
+                        inst.logger.error(err.stack);
                     }
                 });
                 inst.udpServer.on('listening', () => {
