@@ -417,6 +417,7 @@ class pluginLoader {
         setupEventHandlers(this.loaded_core);
         setupNetworkHandlers(this.loaded_core);
         setupLifecycle(this.loaded_core);
+        setupBindVar(this.loaded_core, console.getMemoryAccess());
         markPrototypeProcessed(this.loaded_core);
         Object.keys(this.loaded_core).forEach((key: string) => {
             if ((this.loaded_core as any)[key] !== null && (this.loaded_core as any)[key] !== undefined) {
@@ -425,7 +426,7 @@ class pluginLoader {
                 setupEventHandlers((this.loaded_core as any)[key]);
                 setupLifecycle((this.loaded_core as any)[key]);
                 setupNetworkHandlers((this.loaded_core as any)[key]);
-                setupBindVar((this.loaded_core as any)[key], this.loaded_core.ModLoader.emulator);
+                setupBindVar((this.loaded_core as any)[key], console.getMemoryAccess());
                 markPrototypeProcessed((this.loaded_core as any)[key]);
             }
         });

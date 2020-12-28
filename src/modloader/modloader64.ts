@@ -32,8 +32,8 @@ import { IRomMemory } from 'modloader64_api/IRomMemory';
 import { ModLoaderRPC } from './rpc/ModLoaderRPC';
 import { Cloudmax } from './Cloudmax';
 import { getAllFiles } from './getAllFiles';
-import { PakPatch } from './PakPatch';
 import { IClientConfig } from './IClientConfig';
+import { MLPatchLibReg } from './MLPatchLib';
 
 const SUPPORTED_CONSOLES: string[] = ['N64', 'Gamecube', 'Wii'];
 export const internal_event_bus = new EventBus();
@@ -136,7 +136,7 @@ class ModLoader64 {
         let BPS = require('./BPS');
         registerPatchType(".bps", new BPS() as RomPatchType);
         registerPatchType(".txt", new Cloudmax());
-        registerPatchType(".pak", new PakPatch());
+        registerPatchType(".mp", new MLPatchLibReg());
         this.preinit();
     }
 

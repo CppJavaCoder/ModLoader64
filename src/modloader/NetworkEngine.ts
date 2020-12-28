@@ -45,6 +45,7 @@ import { ML_UUID } from './uuid/mluuid';
 import { getAllFiles } from './getAllFiles';
 import { IClientConfig } from './IClientConfig';
 import { IServerConfig } from './IServerConfig';
+import { SmartBuffer } from 'smart-buffer';
 
 let natUpnp = require('nat-upnp');
 let natUpnp_client = natUpnp.createClient();
@@ -403,17 +404,36 @@ namespace NetworkEngine {
                             bus.emit(EventsServer.ON_LOBBY_CREATE, lj.lobbyData.name);
                             bus.emit(EventsServer.ON_LOBBY_DATA, storage.config);
                             bus.emit(EventsServer.ON_LOBBY_JOIN, new EventServerJoined(lj.player, lj.lobbyData.name));
-                            //@ts-ignore
-                            socket['ModLoader64'] = {
-                                lobby: storage.config.name,
-                                player: lj.player,
-                            };
-                            inst.sendToTarget(socket.id, 'LobbyReady', {
-                                storage: storage.config,
-                                udp: inst.udpPort,
-                            });
-                            inst.sendToTarget(lj.lobbyData.name, 'playerJoined', lj.player);
-                            inst.lobby_names.push(lj.lobbyData.name);
+                            if (storage.config.data.hasOwnProperty("patch_chunks")){
+                                // Has a patch.
+                                storage.config.data["patch_temp"] = new SmartBuffer();
+                                inst.sendToTarget(socket.id, 'RequestPatchChunk', {chunk: 0});
+                            }else{
+                                // Does not have a patch.
+                                inst.sendToTarget(socket.id, 'LobbyReady', {
+                                    storage: storage.config,
+                                    udp: inst.udpPort,
+                                });
+                                inst.sendToTarget(lj.lobbyData.name, 'playerJoined', lj.player);
+                                inst.lobby_names.push(lj.lobbyData.name);
+                            }
+                        }
+                    });
+                    socket.on('SendPatchChunk', function(data: any){
+                        let lobby: ILobbyStorage = inst.getLobbyStorage_internal(data.lobby)!;
+                        if (lobby !== null){
+                            (lobby.config.data['patch_temp'] as SmartBuffer).writeBuffer(data.data);
+                            if (data.chunk >= lobby.config.data["patch_chunks"]){
+                                lobby.config.data["patch"] = (lobby.config.data["patch_temp"] as SmartBuffer).toBuffer();
+                                delete lobby.config.data["patch_temp"];
+                                inst.sendToTarget(socket.id, 'LobbyReady', {
+                                    storage: lobby.config,
+                                    udp: inst.udpPort,
+                                });
+                            }else{
+                                let next = data.chunk + 1;
+                                inst.sendToTarget(socket.id, 'RequestPatchChunk', {chunk: next});
+                            }
                         }
                     });
                     socket.on('playerJoined_reply', function (data: any) {
@@ -543,6 +563,7 @@ namespace NetworkEngine {
         pluginConfiguredConnection: boolean = false;
         connectionTimer: any;
         discord: string;
+        patchChunks: Array<Buffer> = [];
 
         constructor(logger: ILogger, config: IConfig, discord: string) {
             this.discord = discord;
@@ -684,14 +705,17 @@ namespace NetworkEngine {
                             }
                         }
                         if (patch_path !== "") {
-                            let gzip = zlib.gzipSync(fs.readFileSync(path.resolve(patch_path)));
-                            if (gzip.byteLength > (data.patchLimit * 1024 * 1024)) {
-                                inst.logger.error("Patch file " + patch_path + " too large.");
-                                process.exit(ModLoaderErrorCodes.BPS_FAILED);
-                            } else {
-                                ld.data['patch'] = gzip;
-                                ld.data['patch_name'] = inst.modLoaderconfig.patch;
+                            inst.logger.info("Processing patch file. Please wait...");
+                            let gzip = new SmartBuffer();
+                            gzip.writeBuffer(zlib.gzipSync(fs.readFileSync(path.resolve(patch_path))));
+                            let chunk_size: number = 0xFFFF;
+                            while (gzip.remaining() > 0){
+                                inst.patchChunks.push(gzip.readBuffer(gzip.remaining() >= chunk_size ? chunk_size : gzip.remaining()));
                             }
+                            inst.logger.info("Patch broken into " + inst.patchChunks.length + " chunks.");
+                            ld.data["patch_name"] = inst.modLoaderconfig.patch;
+                            ld.data["patch_chunks"] = inst.patchChunks.length - 1;
+                            ld.data["patch_size"] = gzip.toBuffer().byteLength;
                         }
                     }
                     inst.socket.emit('LobbyRequest', new LobbyJoin(ld, inst.me));
@@ -703,6 +727,9 @@ namespace NetworkEngine {
                     setTimeout(() => {
                         process.exit(ModLoaderErrorCodes.BAD_VERSION);
                     }, 1000);
+                });
+                inst.socket.on('RequestPatchChunk', (data: any)=>{
+                    inst.socket.emit('SendPatchChunk', {chunk: data.chunk, data: inst.patchChunks[data.chunk], lobby: inst.config.lobby});
                 });
                 inst.socket.on('LobbyReady', (data: any) => {
                     let ld: LobbyData = data.storage as LobbyData;

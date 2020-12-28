@@ -24,7 +24,6 @@ export interface JitInterface {
 }
 
 export interface Memmap {
-  clear(): void;
   memset(address: number, value: number, size: number): void;
 
   readU8(address: number): number;
@@ -113,6 +112,7 @@ export enum Type {
 
 export interface Accessors {
   isValidAddress(address: number): boolean;
+  memset(address: number, value: number, size: number): void;
 
   readU8(address: number): number;
   readU16LE(address: number): number;
@@ -176,7 +176,7 @@ export class Dolphin {
   public onStateChanged?: (newState: CoreState) => void = undefined;
 
   public constructor(createInfo: CreateInfo) {
-    this.module = require(path.join(createInfo.baseDir, 'dolphin.node'));
+    this.module = require(path.join(process.cwd(), "dolphin", "binding", 'dolphin.node'));
     this.frontend = new this.module.Frontend();
     this.createInfo = createInfo;
   }

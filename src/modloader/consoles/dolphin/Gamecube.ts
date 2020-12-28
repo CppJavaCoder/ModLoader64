@@ -17,6 +17,7 @@ import fs from 'fs';
 import { CoreState, Dolphin } from '@dolphin/binding/Dolphin';
 import { internal_event_bus } from "../../modloader64";
 import { bus } from "modloader64_api/EventHandler";
+import { ModLoaderErrorCodes } from "API/build/ModLoaderErrorCodes";
 
 export class Gamecube implements IConsole {
 
@@ -25,8 +26,11 @@ export class Gamecube implements IConsole {
     mem: DolphinMemoryWrapper;
     callbacks: Map<string, Array<Function>> = new Map<string, Array<Function>>();
     isRunning: boolean = false;
+    iso: Buffer;
+    logger: ILogger;
 
     constructor(rom: string, logger: ILogger, lobby: string) {
+        this.logger = logger;
         this.mod = new Dolphin({
             // Qt app metadata, mostly used when storing settings via QSetting
             orgName: 'ModLoader64',
@@ -56,6 +60,17 @@ export class Gamecube implements IConsole {
                 }
             }
         };
+        // Only load this temporarily. Null it after boot.
+        logger.info("Loading rom: " + rom + ".");
+        if (rom === "") {
+            this.logger.error("No rom selected!");
+            process.exit(ModLoaderErrorCodes.NO_ROM);
+        }
+        if (!fs.existsSync(rom)) {
+            this.logger.error("No rom selected!");
+            process.exit(ModLoaderErrorCodes.NO_ROM);
+        }
+        this.iso = fs.readFileSync(this.rom);
     }
 
     getInternalPluginPath(): string {
@@ -63,12 +78,18 @@ export class Gamecube implements IConsole {
     }
 
     startEmulator(preStartCallback: Function): IMemory {
-        preStartCallback(this.getLoadedRom());
+        preStartCallback();
+        let ndir: string = fs.mkdtempSync('ModLoader64_temp_');
+        this.rom = path.resolve(ndir, path.parse(this.rom).base);
+        fs.writeFileSync(this.rom, this.iso);
         this.mod.start({
             path: this.rom,
             isNandTitle: false,
             savestatePath: undefined
         });
+        // null the cached iso now.
+        //@ts-ignore
+        this.iso = undefined;
         return this.mem;
     }
 
@@ -95,22 +116,21 @@ export class Gamecube implements IConsole {
     }
 
     getLoadedRom(): Buffer {
-        return this.mem.getRomBuffer();
+        return this.iso;
     }
 
     getRomOriginalSize(): number {
-        return 1;
+        return this.iso.byteLength;
     }
 
     getRomHeader(): IRomHeader {
-        let iso = fs.readFileSync(this.rom);
         let head = new GCRomHeader();
-        head.id = iso.slice(0, 6).toString();
+        head.id = this.iso.slice(0, 4).toString();
         let b = -1;
         let o = 0x20;
         while (b !== 0) {
-            b = iso.readUInt8(o);
-            head.name += iso.slice(o, o + 1).toString();
+            b = this.iso.readUInt8(o);
+            head.name += this.iso.slice(o, o + 1).toString();
             o++;
         }
         head.name = head.name.trim();
