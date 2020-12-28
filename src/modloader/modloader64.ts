@@ -237,7 +237,7 @@ class ModLoader64 {
         let gc = () => {
             moduleAlias.addAlias("@dolphin", path.join(process.cwd(), "/dolphin"));
             if (this.data.isServer) {
-                // No fake server stuff yet.
+                this.emulator = new FakeMupen(this.rom_path);
             }
             if (this.data.isClient) {
                 // This is dumb but import statements and dynamic aliases don't get along.
