@@ -334,9 +334,6 @@ function build() {
 function postbuild() {
     findRemoveSync('./src', { extensions: ['.js'] });
     findRemoveSync('./test', { extensions: ['.js'] });
-    if (!fs.existsSync("./build2")) {
-        fs.mkdirSync("./build2");
-    }
     let hashes = [];
     recursive("./build", function (err, files) {
         for (let i = 0; i < files.length; i++) {
@@ -350,7 +347,10 @@ function postbuild() {
 }
 
 function player2() {
-    fs.copySync("./build", "./build2");
+    if (!fs.existsSync("./build2")) {
+        fs.mkdirSync("./build2");
+        fs.copySync("./build", "./build2");
+    }
     if (fs.existsSync("./build2/ModLoader64-config.json")) {
         let config = JSON.parse(fs.readFileSync("./build2/ModLoader64-config.json", 'utf8'));
         config.ModLoader64.isServer = false;
