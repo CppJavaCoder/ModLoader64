@@ -36,7 +36,7 @@ import {
 import IModLoaderConfig from './IModLoaderConfig';
 import fs from 'fs';
 import { internal_event_bus } from './modloader64';
-import zlib from 'zlib';
+import zlib, { gunzipSync } from 'zlib';
 import dgram, { Socket, RemoteInfo } from 'dgram';
 import { AddressInfo } from 'net';
 import path from 'path';
@@ -55,6 +55,7 @@ class LobbyStorage implements ILobbyStorage {
     config: LobbyData;
     owner: string;
     data: any;
+    patch: Buffer[] = [];
 
     constructor(config: LobbyData, owner: string) {
         this.config = config;
@@ -388,6 +389,7 @@ namespace NetworkEngine {
                                 inst.sendToTarget(socket.id, 'LobbyReady', {
                                     storage: storage.config,
                                     udp: inst.udpPort,
+                                    useOwnPatch: !storage.config.data.hasOwnProperty("patch_chunks")
                                 });
                                 inst.sendToTarget(lj.lobbyData.name, 'playerJoined', lj.player);
                             } else {
@@ -404,35 +406,42 @@ namespace NetworkEngine {
                             bus.emit(EventsServer.ON_LOBBY_CREATE, lj.lobbyData.name);
                             bus.emit(EventsServer.ON_LOBBY_DATA, storage.config);
                             bus.emit(EventsServer.ON_LOBBY_JOIN, new EventServerJoined(lj.player, lj.lobbyData.name));
-                            if (storage.config.data.hasOwnProperty("patch_chunks")){
+                            if (storage.config.data.hasOwnProperty("patch_chunks")) {
                                 // Has a patch.
-                                storage.config.data["patch_temp"] = new SmartBuffer();
-                                inst.sendToTarget(socket.id, 'RequestPatchChunk', {chunk: 0});
-                            }else{
+                                inst.sendToTarget(socket.id, 'RequestPatchChunk', { chunk: 0 });
+                            } else {
                                 // Does not have a patch.
                                 inst.sendToTarget(socket.id, 'LobbyReady', {
                                     storage: storage.config,
                                     udp: inst.udpPort,
+                                    useOwnPatch: true
                                 });
                                 inst.sendToTarget(lj.lobbyData.name, 'playerJoined', lj.player);
                                 inst.lobby_names.push(lj.lobbyData.name);
                             }
                         }
                     });
-                    socket.on('SendPatchChunk', function(data: any){
+                    socket.on('SendPatchChunk', function (data: any) {
                         let lobby: ILobbyStorage = inst.getLobbyStorage_internal(data.lobby)!;
-                        if (lobby !== null){
-                            (lobby.config.data['patch_temp'] as SmartBuffer).writeBuffer(data.data);
-                            if (data.chunk >= lobby.config.data["patch_chunks"]){
-                                lobby.config.data["patch"] = (lobby.config.data["patch_temp"] as SmartBuffer).toBuffer();
-                                delete lobby.config.data["patch_temp"];
+                        if (lobby !== null) {
+                            lobby.patch.push(data.data);
+                            if (data.chunk >= lobby.config.data["patch_chunks"]) {
                                 inst.sendToTarget(socket.id, 'LobbyReady', {
                                     storage: lobby.config,
                                     udp: inst.udpPort,
+                                    useOwnPatch: true
                                 });
-                            }else{
+                            } else {
                                 let next = data.chunk + 1;
-                                inst.sendToTarget(socket.id, 'RequestPatchChunk', {chunk: next});
+                                inst.sendToTarget(socket.id, 'RequestPatchChunk', { chunk: next });
+                            }
+                        }
+                    });
+                    socket.on('RequestPatchChunk', (data: any) => {
+                        let lobby: ILobbyStorage = inst.getLobbyStorage_internal(data.lobby)!;
+                        if (lobby !== null) {
+                            if (lobby.config.data["patch_chunks"] >= data.chunk) {
+                                inst.sendToTarget(data.player.uuid, 'SendPatchChunk', { chunk: data.chunk, chunks: data.chunks, data: lobby.patch[data.chunk] });
                             }
                         }
                     });
@@ -552,6 +561,7 @@ namespace NetworkEngine {
         masterConfig: IConfig;
         me!: INetworkPlayer;
         udpClient = dgram.createSocket('udp4');
+        udpPortDest: number = -1;
         serverUDPPort = -1;
         isUDPEnabled = false;
         udpTestHandle!: any;
@@ -564,6 +574,7 @@ namespace NetworkEngine {
         connectionTimer: any;
         discord: string;
         patchChunks: Array<Buffer> = [];
+        connectedLobby!: LobbyData;
 
         constructor(logger: ILogger, config: IConfig, discord: string) {
             this.discord = discord;
@@ -709,7 +720,7 @@ namespace NetworkEngine {
                             let gzip = new SmartBuffer();
                             gzip.writeBuffer(zlib.gzipSync(fs.readFileSync(path.resolve(patch_path))));
                             let chunk_size: number = 0xFFFF;
-                            while (gzip.remaining() > 0){
+                            while (gzip.remaining() > 0) {
                                 inst.patchChunks.push(gzip.readBuffer(gzip.remaining() >= chunk_size ? chunk_size : gzip.remaining()));
                             }
                             inst.logger.info("Patch broken into " + inst.patchChunks.length + " chunks.");
@@ -728,34 +739,81 @@ namespace NetworkEngine {
                         process.exit(ModLoaderErrorCodes.BAD_VERSION);
                     }, 1000);
                 });
-                inst.socket.on('RequestPatchChunk', (data: any)=>{
-                    inst.socket.emit('SendPatchChunk', {chunk: data.chunk, data: inst.patchChunks[data.chunk], lobby: inst.config.lobby});
+                inst.socket.on('RequestPatchChunk', (data: any) => {
+                    inst.logger.info("Uploading patch chunk " + data.chunk + " of " + (inst.patchChunks.length - 1) + ".");
+                    inst.socket.emit('SendPatchChunk', { chunk: data.chunk, data: inst.patchChunks[data.chunk], lobby: inst.config.lobby });
                 });
                 inst.socket.on('LobbyReady', (data: any) => {
+                    console.log(data);
                     let ld: LobbyData = data.storage as LobbyData;
                     let udpPort: number = data.udp as number;
+                    inst.udpPortDest = udpPort;
                     inst.logger.info('Joined lobby ' + ld.name + '.');
                     internal_event_bus.emit("DISCORD_INVITE_SETUP", inst.config);
-                    let p: Buffer = Buffer.alloc(1);
-                    if (ld.data.hasOwnProperty('patch')) {
-                        p = zlib.gunzipSync(ld.data.patch);
+                    inst.connectedLobby = ld;
+                    if (data.useOwnPatch) {
+                        let p = Buffer.alloc(1);
+                        if (inst.patchChunks.length > 0) {
+                            let _p = new SmartBuffer();
+                            for (let i = 0; i < inst.patchChunks.length; i++) {
+                                _p.writeBuffer(inst.patchChunks[i]);
+                            }
+                            p = zlib.gunzipSync(_p.toBuffer());
+                        }
+                        let udpTest = new UDPTestPacket();
+                        udpTest.player = inst.me;
+                        udpTest.lobby = inst.config.lobby;
+                        inst.udpTestHandle = setTimeout(() => {
+                            inst.isUDPEnabled = false;
+                            inst.logger.error('UDP disabled.');
+                        }, 30 * 1000);
+                        inst.udpClient.send(JSON.stringify(udpTest), udpPort, inst.config.ip);
+                        inst.serverUDPPort = udpPort;
+                        internal_event_bus.emit('onNetworkConnect', {
+                            me: inst.me,
+                            patch: p,
+                            patch_name: ld.data.patch_name
+                        });
+                        bus.emit(EventsClient.ON_LOBBY_JOIN, ld);
+                        inst.isConnectionReady = true;
+                    } else {
+                        inst.logger.info("Lobby has a patch. Downloading...");
+                        inst.socket.emit('RequestPatchChunk', { player: inst.me, lobby: inst.connectedLobby.name, chunk: 0, chunks: ld.data["patch_chunks"] });
+                        inst.patchChunks = [];
                     }
-                    let udpTest = new UDPTestPacket();
-                    udpTest.player = inst.me;
-                    udpTest.lobby = inst.config.lobby;
-                    inst.udpTestHandle = setTimeout(() => {
-                        inst.isUDPEnabled = false;
-                        inst.logger.error('UDP disabled.');
-                    }, 30 * 1000);
-                    inst.udpClient.send(JSON.stringify(udpTest), udpPort, inst.config.ip);
-                    inst.serverUDPPort = udpPort;
-                    internal_event_bus.emit('onNetworkConnect', {
-                        me: inst.me,
-                        patch: p,
-                        patch_name: ld.data.patch_name
-                    });
-                    bus.emit(EventsClient.ON_LOBBY_JOIN, ld);
-                    inst.isConnectionReady = true;
+                });
+                inst.socket.on('SendPatchChunk', (data: any) => {
+                    inst.logger.info("Progress: " + data.chunk + " / " + data.chunks + ".");
+                    // incomplete
+                    inst.patchChunks.push(data.data);
+                    if (data.chunk < data.chunks) {
+                        data.chunk++;
+                        inst.socket.emit('RequestPatchChunk', { player: inst.me, lobby: inst.connectedLobby.name, chunk: data.chunk, chunks: data.chunks });
+                    } else {
+                        // complete
+                        let _p = new SmartBuffer();
+                        for (let i = 0; i < inst.patchChunks.length; i++) {
+                            _p.writeBuffer(inst.patchChunks[i]);
+                        }
+                        let p: Buffer = zlib.gunzipSync(_p.toBuffer());
+                        let udpTest = new UDPTestPacket();
+                        udpTest.player = inst.me;
+                        udpTest.lobby = inst.config.lobby;
+                        inst.udpTestHandle = setTimeout(() => {
+                            inst.isUDPEnabled = false;
+                            inst.logger.error('UDP disabled.');
+                        }, 30 * 1000);
+                        inst.udpClient.send(JSON.stringify(udpTest), inst.udpPortDest, inst.config.ip);
+                        inst.serverUDPPort = inst.udpPortDest;
+                        internal_event_bus.emit('onNetworkConnect', {
+                            me: inst.me,
+                            patch: p,
+                            patch_name: inst.connectedLobby.data.patch_name
+                        });
+                        bus.emit(EventsClient.ON_LOBBY_JOIN, inst.connectedLobby);
+                        inst.isConnectionReady = true;
+
+                    }
                 });
                 inst.socket.on('disconnect', () => {
                     inst.isConnectionReady = false;

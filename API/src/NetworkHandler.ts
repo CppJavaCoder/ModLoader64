@@ -165,6 +165,7 @@ export interface ILobbyStorage {
   config: LobbyData;
   owner: string;
   data: any;
+  patch: Buffer[];
 }
 
 export interface ILobbyManager {
