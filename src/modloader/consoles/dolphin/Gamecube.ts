@@ -14,6 +14,7 @@ import path from 'path';
 import { GCRomHeader } from "./GCRomHeader";
 import { DolphinMemoryWrapper } from "./MemoryWrapper";
 import fs from 'fs';
+//@ts-ignore
 import { CoreState, Dolphin } from '@dolphin/binding/Dolphin';
 import { internal_event_bus } from "../../modloader64";
 import { bus } from "modloader64_api/EventHandler";
