@@ -458,9 +458,26 @@ if (!WAITING_ON_EXTERNAL) {
                 let meta: string = path.join(p, "package.json");
                 let alg = "";
                 let m = JSON.parse(fs.readFileSync(meta).toString());
+                let metadata = {
+                    name: m.name,
+                    version: m.version,
+                    description: m.description,
+                    author: m.author,
+                    license: m.license,
+                    core: m.core,
+                    emulator: "Mupen64Plus"
+                };
+                if (m.hasOwnProperty("updateUrl")){
+                    metadata["updateUrl"] = m.updateUrl;
+                }
+                if (m.hasOwnProperty("devUrl")){
+                    metadata["devUrl"] = m.devUrl;
+                }
+                fse.writeFileSync("./metadata.json", JSON.stringify(metadata));
                 if (m.hasOwnProperty("compression")) {
                     alg = "--algo=" + m["compression"];
                 }
+                alg += " --meta=" + "./metadata.json";
                 child_process.execSync("node \"" + path.join(f1, "/bin/paker.js") + "\" --dir=\"" + "./" + p + "\" --output=\"" + "./" + "\" " + alg);
                 console.log("Generated pak for " + file + ".");
             }

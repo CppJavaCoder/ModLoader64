@@ -21,6 +21,18 @@ export class Pak4 {
         this.file = file;
     }
 
+    fromZip(z: Buffer) {
+        let temp = new zip(z);
+        for (let i = 0; i < temp.getEntries().length; i++) {
+            let e = temp.getEntries()[i];
+            if (!e.isDirectory) {
+                this.entries.set(e.entryName, e.getData());
+            }
+        }
+        this.the_hash = crypto.createHash('sha512').update(temp.toBuffer()).digest('hex');
+        this.hashMatch = true;
+    }
+
     private updateInternalZip() {
         this.internalZip = new zip();
         this.entries.forEach((value: Buffer, key: string) => {
@@ -106,7 +118,7 @@ export class Pak4 {
                 this.hashMatch = this.the_hash === _hash;
                 break;
             case ".zip":
-                let temp = new zip(fs.readFileSync(file));
+                let temp = new zip(fs.readFileSync(this.file));
                 for (let i = 0; i < temp.getEntries().length; i++) {
                     let e = temp.getEntries()[i];
                     if (!e.isDirectory) {
