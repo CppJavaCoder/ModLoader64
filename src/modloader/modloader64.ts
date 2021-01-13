@@ -191,7 +191,7 @@ class ModLoader64 {
         }
 
         if (this.rom_path === undefined) {
-            this.rom_path = "Zelda.nes";
+            this.rom_path = "Roms/Zelda.nes";
         }
 
         if (path.parse(this.rom_path).ext === ".zip") {

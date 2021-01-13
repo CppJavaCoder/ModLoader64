@@ -5,14 +5,17 @@
     "isServer": true,
     "isClient": true,
     "supportedConsoles": [
-      "N64"
+      "N64",
+      "NES"
     ],
     "selectedConsole": "N64",
-    "coreOverride": ""
+    "coreOverride": "",
+    "disableVIUpdates": false
   },
   "NetworkEngine.Server": {
     "port": 8082,
-    "udpPort": 8082
+    "udpPort": 8082,
+    "patchSizeLimitMB": 10
   },
   "NetworkEngine.Client": {
     "isSinglePlayer": true,
