@@ -11,9 +11,12 @@ import {
 import IModLoaderConfig from './IModLoaderConfig';
 import NetworkEngine from './NetworkEngine';
 import N64 from './consoles/mupen/N64';
+import Retro from './consoles/libretro/Retro';
+
 import IMemory from 'modloader64_api/IMemory';
 import IConsole from 'modloader64_api/IConsole';
 import { FakeMupen } from './consoles/mupen/FakeMupen';
+import { FakeRetro } from './consoles/libretro/FakeRetro';
 import { bus, EventBus } from 'modloader64_api/EventHandler';
 import { IRomHeader } from 'modloader64_api/IRomHeader';
 import {
@@ -35,7 +38,7 @@ import { getAllFiles } from './getAllFiles';
 import { PakPatch } from './PakPatch';
 import { IClientConfig } from './IClientConfig';
 
-const SUPPORTED_CONSOLES: string[] = ['N64'];
+const SUPPORTED_CONSOLES: string[] = ['N64','NES'];
 export const internal_event_bus = new EventBus();
 
 class ModLoader64 {
@@ -62,6 +65,7 @@ class ModLoader64 {
     done = false;
 
     constructor(logger: any, discord: string) {
+
         moduleAlias.addAlias("@emulator", path.join(process.cwd(), "/emulator"));
         moduleAlias.addAlias("@sound", path.join(process.cwd(), "/emulator"));
         global.ModLoader["logger"] = logger;
@@ -88,6 +92,7 @@ class ModLoader64 {
             this.config,
             this.logger.getLogger("PluginLoader")
         );
+
         this.Server = new NetworkEngine.Server(this.logger.getLogger("NetworkEngine.Server"), this.config);
         this.Client = new NetworkEngine.Client(this.logger.getLogger("NetworkEngine.Client"), this.config, discord);
         this.RPC = new ModLoaderRPC();
@@ -102,6 +107,21 @@ class ModLoader64 {
                 // @ts-ignore
                 process.emit('SIGINT');
             });
+
+            if (fs.existsSync('./storage')) {
+                fs.readdirSync('./storage').forEach((key: string) => {
+                    let file: string = path.join('./storage', key);
+                    if (fs.existsSync(file)) {
+                        let seconds =
+                            (new Date().getTime() -
+                                new Date(fs.statSync(file).mtime).getTime()) /
+                            1000;
+                        if (seconds > 2592000) {
+                            fs.unlinkSync(file);
+                        }
+                    }
+                });
+            }
         }
 
         process.on('SIGINT', function () {
@@ -146,7 +166,7 @@ class ModLoader64 {
         this.config.setData(
             'ModLoader64',
             'rom',
-            'Legend of Zelda, The - Ocarina of Time (U) (V1.0) [!].z64'
+            'Zelda.nes'
         );
         this.config.setData('ModLoader64', 'patch', '');
         this.config.setData('ModLoader64', 'isServer', true);
@@ -157,7 +177,7 @@ class ModLoader64 {
             SUPPORTED_CONSOLES,
             true
         );
-        this.config.setData('ModLoader64', 'selectedConsole', 'N64');
+        this.config.setData('ModLoader64', 'selectedConsole', 'NES');
         this.config.setData('ModLoader64', 'coreOverride', '');
         this.config.setData('ModLoader64', 'disableVIUpdates', false);
 
@@ -171,7 +191,7 @@ class ModLoader64 {
         }
 
         if (this.rom_path === undefined) {
-            this.rom_path = "";
+            this.rom_path = "Zelda.nes";
         }
 
         if (path.parse(this.rom_path).ext === ".zip") {
@@ -235,13 +255,28 @@ class ModLoader64 {
                 }
             }
         });
+		this.data.selectedConsole = 'NES';
         switch (this.data.selectedConsole) {
             case 'N64': {
                 if (this.data.isServer) {
+					this.logger.debug("No no no, wrong way!");
                     this.emulator = new FakeMupen(this.rom_path);
                 }
                 if (this.data.isClient) {
+					this.logger.debug("No no no, wrong way!");
                     this.emulator = new N64(this.rom_path, this.logger, this.clientConfig.lobby);
+                }
+                break;
+            }
+			case 'NES': {
+				this.logger.debug("Made it here! 1");
+                if (this.data.isServer) {
+                    this.emulator = new FakeRetro(this.rom_path);
+                }
+                if (this.data.isClient) {
+					this.logger.debug("Made it here! 2");
+                    this.emulator = new Retro(this.rom_path, this.logger, this.clientConfig.lobby);
+					this.logger.debug("Made it here! 3");
                 }
                 break;
             }
@@ -293,24 +328,33 @@ class ModLoader64 {
         let evt: any = { rom: this.emulator.getLoadedRom() };
         bus.emit(ModLoaderEvents.ON_PRE_ROM_LOAD, evt);
         (this.emulator.getMemoryAccess() as unknown as IRomMemory).romWriteBuffer(0x0, evt.rom);
-        bus.emit(ModLoaderEvents.ON_ROM_HEADER_PARSED, loaded_rom_header);
+		bus.emit(ModLoaderEvents.ON_ROM_HEADER_PARSED, loaded_rom_header);
+        this.logger.info('loadPluginsPreInit');
         this.plugins.loadPluginsPreInit(this.emulator);
         internal_event_bus.emit('onPreInitDone', {});
         // Set up networking.
         internal_event_bus.on('onNetworkConnect', (evt: any) => {
-            this.postinit(evt);
+			this.logger.info('onNetworkConnect');
+			this.postinit(evt);
+			this.logger.info('after postinit');
         });
         if (this.data.isServer) {
+			this.logger.info('pre server setup');
             this.Server.setup();
+			this.logger.info('post server setup');
         }
         if (this.data.isClient) {
+			this.logger.info('pre client setup');
             this.Client.setup();
+			this.logger.info('pre rpc setup');
             this.RPC.setup();
+			this.logger.info('post rpc setup');
         }
         internal_event_bus.emit('onInitDone', {});
     }
 
     private postinit(result: any) {
+        this.logger.info('Post init');
         if (this.done) {
             this.plugins.resetPlayerInstance(result[0].me);
             return;
@@ -337,11 +381,7 @@ class ModLoader64 {
                     let rom_data: Buffer = instance.emulator.getLoadedRom();
                     let evt: any = { rom: rom_data };
                     if (instance.data.isClient) {
-                        try {
-                            bus.emit(ModLoaderEvents.ON_ROM_PATCHED_PRE, evt);
-                        } catch (err) {
-                            throw err;
-                        }
+                        bus.emit(ModLoaderEvents.ON_ROM_PATCHED_PRE, evt);
                     }
                     if (p.byteLength > 1 && rom_data.byteLength > 1) {
                         try {
@@ -364,12 +404,8 @@ class ModLoader64 {
                         }
                     }
                     if (instance.data.isClient) {
-                        try {
-                            bus.emit(ModLoaderEvents.ON_ROM_PATCHED, evt);
-                            bus.emit(ModLoaderEvents.ON_ROM_PATCHED_POST, evt);
-                        } catch (err) {
-                            throw err;
-                        }
+                        bus.emit(ModLoaderEvents.ON_ROM_PATCHED, evt);
+                        bus.emit(ModLoaderEvents.ON_ROM_PATCHED_POST, evt);
                     }
                     return evt.rom;
                 }) as IMemory;
@@ -394,6 +430,7 @@ class ModLoader64 {
                 process.exit(1);
             });
         }
+		this.logger.info('Leaving post init');		
     }
 }
 
