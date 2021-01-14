@@ -8,12 +8,10 @@ export class RetroHeader implements IRomHeader {
 
     constructor(raw: Buffer) {
         this.name = raw
-            .slice(0x20, 0x20 + 0x1B)
+            .slice(0x0, 0x03)
             .toString('ascii');
-        this.country_code = raw
-            .slice(0x3e, 0x3f)
-            .toString('ascii');
-        this.revision = raw.readUInt8(0x3f);
-        this.id = raw.slice(0x3B, 0x3E).toString('ascii');
+        this.country_code = '0';
+        this.revision = raw.readUInt8(0x07);
+        this.id = '0';
     }
 }

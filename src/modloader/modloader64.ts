@@ -178,7 +178,7 @@ class ModLoader64 {
             true
         );
         this.config.setData('ModLoader64', 'selectedConsole', 'NES');
-        this.config.setData('ModLoader64', 'coreOverride', '');
+        this.config.setData('ModLoader64', 'coreOverride', 'ZeldaNES');
         this.config.setData('ModLoader64', 'disableVIUpdates', false);
 
         let roms = getAllFiles(this.rom_folder, []);
@@ -259,24 +259,21 @@ class ModLoader64 {
         switch (this.data.selectedConsole) {
             case 'N64': {
                 if (this.data.isServer) {
-					this.logger.debug("No no no, wrong way!");
                     this.emulator = new FakeMupen(this.rom_path);
                 }
                 if (this.data.isClient) {
-					this.logger.debug("No no no, wrong way!");
                     this.emulator = new N64(this.rom_path, this.logger, this.clientConfig.lobby);
                 }
                 break;
             }
 			case 'NES': {
-				this.logger.debug("Made it here! 1");
                 if (this.data.isServer) {
+					this.logger.debug("This is the server");
                     this.emulator = new FakeRetro(this.rom_path);
                 }
                 if (this.data.isClient) {
-					this.logger.debug("Made it here! 2");
+					this.logger.debug("This is the client");
                     this.emulator = new Retro(this.rom_path, this.logger, this.clientConfig.lobby);
-					this.logger.debug("Made it here! 3");
                 }
                 break;
             }

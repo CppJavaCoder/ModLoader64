@@ -326,6 +326,7 @@ namespace NetworkEngine {
                                 }
                             });
                         } catch (err) {
+                            inst.logger.error(`Error in io.on(connection)`);
                             inst.sendToTarget(socket.id, 'versionBad', {
                                 client: { ml: packet.ml, plugins: packet.plugins, core: packet.core },
                                 server: new VersionPacket(
@@ -432,6 +433,7 @@ namespace NetworkEngine {
                                 socket.to(data.lobby).emit('msg', data);
                             }
                         } catch (err) {
+                            inst.logger.error(`Error in socket.on(msg)`);
                             inst.logger.error(err);
                         }
                     });
@@ -492,7 +494,8 @@ namespace NetworkEngine {
                             });
                         }
                     } catch (err) {
-                        inst.logger.error(err);
+                        inst.logger.error(`Error in udpServer.on(message)`);
+                            inst.logger.error(err);
                     }
                 });
                 inst.udpServer.on('listening', () => {

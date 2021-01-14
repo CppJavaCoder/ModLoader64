@@ -1,0 +1,29 @@
+{
+  "ModLoader64": {
+    "rom": "Legend of Zelda, The - Ocarina of Time (U) (V1.0) [!].z64",
+    "patch": "",
+    "isServer": false,
+    "isClient": true,
+    "supportedConsoles": [
+      "N64",
+      "NES"
+    ],
+    "selectedConsole": "N64",
+    "coreOverride": "",
+    "disableVIUpdates": false
+  },
+  "NetworkEngine.Server": {
+    "port": 8082,
+    "udpPort": 8082,
+    "patchSizeLimitMB": 10
+  },
+  "NetworkEngine.Client": {
+    "isSinglePlayer": false,
+    "forceServerOverride": false,
+    "ip": "127.0.0.1",
+    "port": 8082,
+    "lobby": "land-disloyal-41",
+    "nickname": "Player",
+    "password": ""
+  }
+}

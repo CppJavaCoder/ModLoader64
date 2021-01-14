@@ -72,7 +72,7 @@ class Retro implements IConsole {
         size.y = global.ModLoader["ScreenHeight"];
 
         let emu_dir: string = global["module-alias"]["moduleAliases"]["@emulator"];
-        this.retro.Frontend.startup(new StartInfoImpl("ModLoader64", size.x, size.y, emu_dir + "/nestopia_libretro.dll", emu_dir, emu_dir));
+        this.retro.Frontend.startup(new StartInfoImpl("ModLoader64", size.x, size.y, emu_dir + "/nestopia_libretro", emu_dir, emu_dir));
         //this.texPath = this.retro.Retro.Config.openSection("Video-GLideRetro").getStringOr("txPath", "");
         let doEvents = setInterval(() => this.retro.Frontend.doEvents(), 10);
         //const _64_MB = 64 * 1024 * 1024;
@@ -264,7 +264,8 @@ class Retro implements IConsole {
     getLoadedRom(): Buffer {
         let rom_r = ((this.retro.Retro.Memory as unknown) as IRomMemory);
         const size = this.retro.Retro.getGameInfo().size;
-        let buf: Buffer = rom_r.romReadBuffer(0x0, 0);
+        this.logger.debug("I am here at least...");
+        let buf: Buffer = rom_r.romReadBuffer(0x0, size);
         return buf;
     }
 
@@ -289,7 +290,7 @@ class Retro implements IConsole {
     }
 
     getRomHeader(): IRomHeader {
-        let raw = ((this.retro.Retro.Memory as unknown) as IRomMemory).romReadBuffer(0x0, 0x50);
+        let raw = ((this.retro.Retro.Memory as unknown) as IRomMemory).romReadBuffer(0x0, 0x10);
         return new RetroHeader(raw);
     }
 

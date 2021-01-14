@@ -387,18 +387,18 @@ export module Retro {
 
     export interface retro_game_geometry
     {
-       base_width: number;
-       base_height: number;
-       max_width: number;
-       max_height: number;
+       baseWidth: number;
+       baseHeight: number;
+       maxWidth: number;
+       maxHeight: number;
 
-       aspect_ratio: number;
+       aspectRatio: number;
     }
 
     export interface retro_system_timing
     {
        fps: number;
-       sample_rate: number;
+       sampleRate: number;
     }
 
     export interface retro_system_av_info

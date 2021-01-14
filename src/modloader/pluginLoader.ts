@@ -433,7 +433,8 @@ class pluginLoader {
         internal_event_bus.emit("CORE_LOADED", { name: this.selected_core, obj: this.loaded_core });
 
         // Start internal plugins.
-        this.processInternalPlugin('./consoles/mupen/MenubarPlugin.js', console);
+		this.processInternalPlugin('./consoles/libretro/MenubarPlugin.js', console);
+		//this.processInternalPlugin('./consoles/mupen/MenubarPlugin.js', console);
 
         // Start external plugins.
         if (fs.existsSync("./load_order.json")) {
