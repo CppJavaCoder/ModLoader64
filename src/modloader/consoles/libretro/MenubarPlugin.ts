@@ -379,15 +379,15 @@ class MenubarPlugin implements IPlugin {
 
     postinit(): void {
         try {
-/*            this.aspect[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getIntOr("AspectRatio", 1);
-            this.highres = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection('Video-GLideRetro').getBoolOr('txHiresEnable', false);
-            this.ScreenWidth[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-General").getIntOr("ScreenWidth", 800);
-            this.ScreenHeight[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-General").getIntOr("ScreenHeight", 600);
-            this.fxaa = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getBoolOr("FXAA", false);
-            this.htc = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getBoolOr("txHiresTextureFileStorage", false);
-            this.hts = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getBoolOr("txHiresTextureFileStorage", false);
-            this.ms[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getIntOr("MultiSampling", 0);
-            this.ani[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getIntOr("MaxAnisotropy", 0);
+            //this.aspect[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getIntOr("AspectRatio", 1);
+            //this.highres = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection('Video-GLideRetro').getBoolOr('txHiresEnable', false);
+            //this.ScreenWidth[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-General").getIntOr("ScreenWidth", 800);
+            //this.ScreenHeight[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-General").getIntOr("ScreenHeight", 600);
+            //this.fxaa = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getBoolOr("FXAA", false);
+            //this.htc = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getBoolOr("txHiresTextureFileStorage", false);
+            //this.hts = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getBoolOr("txHiresTextureFileStorage", false);
+            //this.ms[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getIntOr("MultiSampling", 0);
+            //this.ani[0] = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Video-GLideRetro").getIntOr("MaxAnisotropy", 0);
             let audio = ((this.Binding as any)["retro"] as IRetro).Retro.Config.openSection("Audio-SDL").getStringOr("RESAMPLE", "trivial");
             let volumeAdjust = (this.Binding as any).retro.Retro.Config.openSection('Audio-SDL').getIntOr('VOLUME_ADJUST', 5);
             for (let i = 0; i < this.audio_options.length; i++) {
@@ -410,7 +410,7 @@ class MenubarPlugin implements IPlugin {
                         console.log("wtf");
                     }
                 }
-            });*/
+            });
         } catch (err) {
             this.ModLoader.logger.error(err);
         }
