@@ -166,7 +166,7 @@ class ModLoader64 {
         this.config.setData(
             'ModLoader64',
             'rom',
-            'Zelda.nes'
+            'Legend of Zelda, The - Ocarina of Time (U) (V1.0) [!].z64'
         );
         this.config.setData('ModLoader64', 'patch', '');
         this.config.setData('ModLoader64', 'isServer', true);
@@ -177,8 +177,8 @@ class ModLoader64 {
             SUPPORTED_CONSOLES,
             true
         );
-        this.config.setData('ModLoader64', 'selectedConsole', 'NES');
-        this.config.setData('ModLoader64', 'coreOverride', 'ZeldaNES');
+        this.config.setData('ModLoader64', 'selectedConsole', 'N64');
+        this.config.setData('ModLoader64', 'coreOverride', '');
         this.config.setData('ModLoader64', 'disableVIUpdates', false);
 
         let roms = getAllFiles(this.rom_folder, []);
@@ -191,7 +191,7 @@ class ModLoader64 {
         }
 
         if (this.rom_path === undefined) {
-            this.rom_path = "Roms/Zelda.nes";
+            this.rom_path = "";
         }
 
         if (path.parse(this.rom_path).ext === ".zip") {

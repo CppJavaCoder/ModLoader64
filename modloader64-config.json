@@ -1,6 +1,6 @@
 {
   "ModLoader64": {
-    "rom": "Legend of Zelda, The - Ocarina of Time (U) (V1.0) [!].z64",
+    "rom": "Zelda.nes",
     "patch": "",
     "isServer": true,
     "isClient": true,
@@ -8,8 +8,8 @@
       "N64",
       "NES"
     ],
-    "selectedConsole": "N64",
-    "coreOverride": "",
+    "selectedConsole": "NES",
+    "coreOverride": "ZeldaNES",
     "disableVIUpdates": false
   },
   "NetworkEngine.Server": {
@@ -22,8 +22,8 @@
     "forceServerOverride": false,
     "ip": "127.0.0.1",
     "port": 8082,
-    "lobby": "land-disloyal-41",
-    "nickname": "Player",
+    "lobby": "CoffeeWorld",
+    "nickname": "Player1",
     "password": ""
   }
 }
