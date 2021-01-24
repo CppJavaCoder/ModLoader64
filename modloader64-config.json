@@ -1,6 +1,6 @@
 {
   "ModLoader64": {
-    "rom": "Zelda.nes",
+    "rom": "Sonic2.bin",
     "patch": "",
     "isServer": true,
     "isClient": true,
@@ -9,7 +9,7 @@
       "NES"
     ],
     "selectedConsole": "NES",
-    "coreOverride": "ZeldaNES",
+    "coreOverride": "",
     "disableVIUpdates": false
   },
   "NetworkEngine.Server": {

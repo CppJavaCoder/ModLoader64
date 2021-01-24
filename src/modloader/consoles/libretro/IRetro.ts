@@ -17,7 +17,6 @@ export interface IRetro {
 }
 
 export interface IFrontend {
-
     startup(startInfo: Frontend.StartInfo): void;
     shutdown(): void;
     doEvents(): void;
@@ -52,6 +51,31 @@ export interface IFrontend {
     openMemViewer(): void;
     closeMemViewer(): void;
     isMemViewerOpen(): boolean;
+
+    Sprite: Sprite;
+}
+
+export interface Sprite
+{
+    fromImage(imFile: string,w: number,h: number,cols: number,rows: number): void;
+    fromSurface(srf: Buffer,w: number,h: number,cols: number,rows: number): void;
+    fromBuffer(pixels: Buffer,pitch: number,w: number,h: number,cols: number,rows: number): void;
+    fromSprite(index: number): void;
+    remove(index: number): void;
+    setFrame(index: number,frame: number): void;
+    animate(index: number,from: number,to: number,time: number): void;
+    setPos(index: number,x: number,y: number): void;
+    replaceColor(index: number,r1: number,g1: number,b1:number,r2: number,g2: number,b2:number): void;
+    replaceColour(index: number,r1: number,g1: number,b1:number,r2: number,g2: number,b2:number): void;
+    getX(index: number): number;
+    getY(index: number): number;
+    getW(index: number): number;
+    getH(index: number): number;
+    setHFlip(index: number,flip: boolean): void;
+    setVFlip(index: number,flip: boolean): void;
+    setFG(index: number,fg: boolean): void;
+    getFG(index: number): boolean;
+    setClip(index: number,x: number,y: number, w: number,h: number): void;
 }
 
 export interface IRetro {

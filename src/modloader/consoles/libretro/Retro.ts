@@ -72,7 +72,7 @@ class Retro implements IConsole {
         size.y = global.ModLoader["ScreenHeight"];
 
         let emu_dir: string = global["module-alias"]["moduleAliases"]["@emulator"];
-        this.retro.Frontend.startup(new StartInfoImpl("ModLoader64", size.x, size.y, emu_dir + "/nestopia_libretro", emu_dir, emu_dir));
+        this.retro.Frontend.startup(new StartInfoImpl("ModLoader64", size.x, size.y, emu_dir + "/genesis_plus_gx_libretro", emu_dir, emu_dir));
         //this.texPath = this.retro.Retro.Config.openSection("Video-GLideRetro").getStringOr("txPath", "");
         let doEvents = setInterval(() => this.retro.Frontend.doEvents(), 10);
         //const _64_MB = 64 * 1024 * 1024;
@@ -84,6 +84,28 @@ class Retro implements IConsole {
         }
         //section.setString("ScreenshotPath", screenshot_dir);
         //this.retro.Retro.Config.saveFile();
+
+        bus.on('create-sprite', (fname: string, w: number, h: number, cols: number, rows: number) => {
+            this.logger.info("Loading Sprite "+fname);
+            this.retro.Frontend.Sprite.fromImage(fname,w,h,cols,rows);
+        });
+        bus.on('copy-sprite', (index: number) => {
+            this.logger.info("Copying Sprite "+index);
+            this.retro.Frontend.Sprite.fromSprite(index);
+        });
+        bus.on('move-sprite', (index: number, x: number, y: number) => {
+            this.retro.Frontend.Sprite.setPos(index, x, y);
+        });
+        bus.on('frame-sprite', (index: number, frm: number) => {
+            this.retro.Frontend.Sprite.setFrame(index, frm);
+        });
+        bus.on('fg-sprite', (index: number, pos: boolean) => {
+            this.retro.Frontend.Sprite.setFG(index, pos);
+        });
+        bus.on('clip-sprite', (index: number, x: number, y: number, w: number, h: number) => {
+            this.retro.Frontend.Sprite.setClip(index, x, y, w, h);
+        });
+
         this.registerCallback('window-closing', () => {
             //if (this.retro.Retro.getEmuState() === EmuState.Paused) {
             //    this.retro.Retro.resume();
@@ -266,6 +288,7 @@ class Retro implements IConsole {
         const size = this.retro.Retro.getGameInfo().size;
         this.logger.debug("I am here at least...");
         let buf: Buffer = rom_r.romReadBuffer(0x0, size);
+        this.logger.debug("I read from the scary buffer!");
         return buf;
     }
 
