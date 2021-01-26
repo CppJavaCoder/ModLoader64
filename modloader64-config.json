@@ -1,6 +1,6 @@
 {
   "ModLoader64": {
-    "rom": "Sonic2.bin",
+    "rom": "Zelda.nes",
     "patch": "",
     "isServer": true,
     "isClient": true,
@@ -10,7 +10,8 @@
     ],
     "selectedConsole": "NES",
     "coreOverride": "",
-    "disableVIUpdates": false
+    "disableVIUpdates": false,
+    "retroDLL": "nestopia_libretro"
   },
   "NetworkEngine.Server": {
     "port": 8082,
@@ -25,5 +26,8 @@
     "lobby": "CoffeeWorld",
     "nickname": "Player1",
     "password": ""
+  },
+  "OcarinaofTime": {
+    "skipN64Logo": true
   }
 }

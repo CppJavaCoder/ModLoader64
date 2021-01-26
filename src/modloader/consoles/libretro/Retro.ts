@@ -70,9 +70,13 @@ class Retro implements IConsole {
         }
         size.x = global.ModLoader["ScreenWidth"];
         size.y = global.ModLoader["ScreenHeight"];
-
+        
+        let original_dir: string = process.cwd();
+        original_dir = original_dir.slice(0,original_dir.length-6);
+        let cfg: any = JSON.parse(fs.readFileSync(path.join(original_dir, "modloader64-config.json")).toString());
+        
         let emu_dir: string = global["module-alias"]["moduleAliases"]["@emulator"];
-        this.retro.Frontend.startup(new StartInfoImpl("ModLoader64", size.x, size.y, emu_dir + "/genesis_plus_gx_libretro", emu_dir, emu_dir));
+        this.retro.Frontend.startup(new StartInfoImpl("ModLoader64", size.x, size.y, emu_dir + "/"+cfg["ModLoader64"]["retroDLL"], emu_dir, emu_dir));
         //this.texPath = this.retro.Retro.Config.openSection("Video-GLideRetro").getStringOr("txPath", "");
         let doEvents = setInterval(() => this.retro.Frontend.doEvents(), 10);
         //const _64_MB = 64 * 1024 * 1024;
@@ -176,10 +180,17 @@ class Retro implements IConsole {
             this.logger.error("No rom selected!");
             process.exit(2);
         }
-        if(!fs.existsSync(rom) || this.retro.Retro.loadGame(rom))
+        let success: boolean = this.retro.Retro.loadGame(rom);
+        if(!fs.existsSync(rom) || success)
 			this.logger.debug("ROM loaded successfully!");
-		else
-			this.logger.debug("ROM failed to load");
+        else
+        {
+            //I have noticed a ROM load error recently, where it loads the data but the libretro load returns a false value
+            //Looking into the code I saw it had to do with it's own file handler. Retrying can sometimes fix this issue
+            this.logger.error("ROM failed to load");
+            bus.emit('SHUTDOWN_EVERYTHING', {});
+            process.exit(0);
+        }
 
         let _rom: Buffer = fs.readFileSync(rom);
         this.rom_size = _rom.byteLength;

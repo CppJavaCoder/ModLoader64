@@ -255,7 +255,6 @@ class ModLoader64 {
                 }
             }
         });
-		this.data.selectedConsole = 'NES';
         switch (this.data.selectedConsole) {
             case 'N64': {
                 if (this.data.isServer) {
