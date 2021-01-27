@@ -7,7 +7,7 @@ import { RetroHeader } from './RetroHeader';
 import { ILogger, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import IUtils from 'modloader64_api/IUtils';
 import ISaveState from 'modloader64_api/ISaveState';
-import path from 'path';
+import path, { join } from 'path';
 import { StartInfoImpl } from './StartInfoImpl';
 import fs from 'fs';
 import { IImGui } from 'modloader64_api/Sylvain/ImGui';
@@ -349,9 +349,12 @@ class Retro implements IConsole {
     }
 
     setSaveDir(path: string): void {
-        //let section = this.retro.Retro.Config.openSection('Core');
-        //section.setString('SaveSRAMPath', path);
-        //section.save();
+        let section = this.retro.Retro.Config.openSection('Core');
+        section.setString('SaveSRAMPath', path);
+        section.save();
+        if(!fs.existsSync(join(path,this.getRomHeader().id)))
+            fs.mkdirSync(join(path,this.getRomHeader().id));
+        this.retro.Retro.setSaveDir(join(path,this.getRomHeader().id));
     }
 
     getUtils(): IUtils {

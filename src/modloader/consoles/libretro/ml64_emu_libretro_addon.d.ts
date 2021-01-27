@@ -478,6 +478,7 @@ export module Retro {
     export function saveStateToSlot(slot: number): void;
     export function saveStateToFile(path: string): void;
     export function advanceFrame(): void;
+    export function setSaveDir(path: string): void;
 }
 
 export module Yaz0 {

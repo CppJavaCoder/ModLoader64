@@ -102,6 +102,7 @@ export interface IRetro {
 	getGameInfo(): Retro.retro_game_info;
 	setNeedGameSupport(s: boolean): void;
 	getNeedGameSupport(): boolean;
+	setSaveDir(path: string): void;
 
     pause(): void;
     resume(): void;
