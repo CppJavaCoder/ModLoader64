@@ -352,9 +352,7 @@ class Retro implements IConsole {
         let section = this.retro.Retro.Config.openSection('Core');
         section.setString('SaveSRAMPath', path);
         section.save();
-        if(!fs.existsSync(join(path,this.getRomHeader().id)))
-            fs.mkdirSync(join(path,this.getRomHeader().id));
-        this.retro.Retro.setSaveDir(join(path,this.getRomHeader().id));
+        this.retro.Retro.setSaveDir(path);
     }
 
     getUtils(): IUtils {
