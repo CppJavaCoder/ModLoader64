@@ -1,6 +1,6 @@
 {
   "ModLoader64": {
-    "rom": "Zelda.nes",
+    "rom": "Sonic3.bin",
     "patch": "",
     "isServer": true,
     "isClient": true,
@@ -11,7 +11,7 @@
     "selectedConsole": "NES",
     "coreOverride": "",
     "disableVIUpdates": false,
-    "retroDLL": "nestopia_libretro"
+    "retroDLL": "genesis_plus_gx_libretro"
   },
   "NetworkEngine.Server": {
     "port": 8082,

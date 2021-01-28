@@ -261,7 +261,7 @@ class Retro implements IConsole {
         if (buf !== undefined || buf !== null) {
             rom_r.romWriteBuffer(0x0, buf);
         }
-        this.setSaveDir(path.relative(path.resolve(global["module-alias"]["moduleAliases"]["@emulator"]), path.resolve(global["module-alias"]["moduleAliases"]["@emulator"], "saves", this.lobby)));
+        //this.setSaveDir(path.relative(path.resolve(global["module-alias"]["moduleAliases"]["@emulator"]), path.resolve(global["module-alias"]["moduleAliases"]["@emulator"], "saves", this.lobby)));
         this.retro.Frontend.execute();
         internal_event_bus.on('emulator_started', () => {
             //global.ModLoader["GLOBAL_VOLUME"] = this.retro.Retro.getAudioVolume();
