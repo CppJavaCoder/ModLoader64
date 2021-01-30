@@ -11,7 +11,7 @@
     "selectedConsole": "NES",
     "coreOverride": "",
     "disableVIUpdates": false,
-    "retroDLL": "genesis_plus_gx_libretro"
+    "retroDLL": "nestopia_libretro"
   },
   "NetworkEngine.Server": {
     "port": 8082,

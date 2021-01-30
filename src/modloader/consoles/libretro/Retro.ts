@@ -109,6 +109,9 @@ class Retro implements IConsole {
         bus.on('clip-sprite', (index: number, x: number, y: number, w: number, h: number) => {
             this.retro.Frontend.Sprite.setClip(index, x, y, w, h);
         });
+        bus.on('recolor-sprite', (index: number, r: number, g: number, b: number, r2: number, g2: number, b2: number) => {
+            this.retro.Frontend.Sprite.replaceColor(index, r, g, b, r2 ,g2 ,b2);
+        });
 
         this.registerCallback('window-closing', () => {
             //if (this.retro.Retro.getEmuState() === EmuState.Paused) {
